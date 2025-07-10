@@ -3,13 +3,10 @@ from sklearn.svm import SVC
 from sklearn.metrics import accuracy_score
 from sklearn.utils import shuffle
 import time
-import os
-import numpy as np
 
-from KernelSVM_SMO import KernelSVM_SMO  # Assicurati che questo modulo sia disponibile
+from KernelSVM_SMO import KernelSVM_SMO
 
-
-def benchmark_svm_varying_size(full_X, full_y, test_X, test_y, C=1.0, gamma=None, sizes=[500, 1000, 5000, 10000]):
+def benchmark_svm_varying_size(full_X, full_y, test_X, test_y, C=1.0, gamma=None, sizes=[500]):
     n_features = full_X.shape[1]
     if gamma is None:
         gamma = 1.0 / n_features
@@ -31,7 +28,8 @@ def benchmark_svm_varying_size(full_X, full_y, test_X, test_y, C=1.0, gamma=None
         start = time.time()
         svm.fit(X_train, y_train)
         runtime = time.time() - start
-        acc = svm.score(test_X, test_y)
+        y_pred_custom = svm.predict(test_X)
+        acc = accuracy_score(test_y, y_pred_custom)  # <-- Usa la stessa metrica di sklearn
         print(f"Custom SMO runtime: {runtime:.2f}s, test accuracy: {acc:.4f}")
 
         # Sklearn SVC
@@ -39,8 +37,8 @@ def benchmark_svm_varying_size(full_X, full_y, test_X, test_y, C=1.0, gamma=None
         start = time.time()
         clf.fit(X_train, y_train)
         runtime_sk = time.time() - start
-        y_pred = clf.predict(test_X)
-        acc_sk = accuracy_score(test_y, y_pred)
+        y_pred_sk = clf.predict(test_X)
+        acc_sk = accuracy_score(test_y, y_pred_sk)
         print(f"sklearn SVC runtime: {runtime_sk:.2f}s, test accuracy: {acc_sk:.4f}")
 
 
@@ -62,4 +60,4 @@ if __name__ == "__main__":
     test_y[test_y == 0] = -1
 
     # Benchmark su diverse dimensioni di training set
-    benchmark_svm_varying_size(full_X, full_y, test_X, test_y, C=1.0, sizes=[400])
+    benchmark_svm_varying_size(full_X, full_y, test_X, test_y, C=1.0, sizes=[100])
