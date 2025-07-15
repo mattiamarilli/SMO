@@ -3,8 +3,14 @@ from sklearn.svm import SVC
 from sklearn.metrics import accuracy_score
 from sklearn.utils import shuffle
 import time
+import numpy as np
 
-from KernelSVM_SMO import KernelSVM_SMO
+from platt_smo import SmoAlgorithm
+
+def rbf_kernel(gamma=1.0):
+    def rbf(x, y):
+        return np.exp(-gamma * np.linalg.norm(x - y) ** 2)
+    return rbf
 
 def benchmark_svm_varying_size(full_X, full_y, test_X, test_y, C=1.0, gamma=None, sizes=[500]):
     n_features = full_X.shape[1]
@@ -24,11 +30,18 @@ def benchmark_svm_varying_size(full_X, full_y, test_X, test_y, C=1.0, gamma=None
         print(f"\nTraining size: {size}")
 
         # Custom SMO
+        smo_start = time.time()
+        smo = SmoAlgorithm(X_train, y_train, C=C, tol=0.001,
+                           kernel=rbf_kernel(gamma=gamma))
+        smo.main_routine()
+        smo_time = time.time() - smo_start
 
-        ...
+        # SMO
+        smo_preds = np.array([np.sign(smo.output(x)) for x in test_X])
+        smo_acc = accuracy_score(test_y, smo_preds)
+        print(f"Custom SMO runtime: {smo_time:.2f}s, test accuracy: {smo_acc:.4f}")
 
-
-        # Sklearn SVC
+        # SVC
         clf = SVC(C=C, kernel='rbf', gamma=gamma)
         start = time.time()
         clf.fit(X_train, y_train)
@@ -39,21 +52,20 @@ def benchmark_svm_varying_size(full_X, full_y, test_X, test_y, C=1.0, gamma=None
 
 
 if __name__ == "__main__":
-    # Percorsi dataset
     train_path = "./datasets/a9a"
     test_path = "./datasets/a9a.t"
 
-    # Carica tutto il training set
     full_X, full_y = load_svmlight_file(train_path)
     full_X = full_X.toarray()
     full_y = full_y.astype(int)
-    full_y[full_y == 0] = -1  # Etichette in {-1, 1}
+    full_y[full_y == 0] = -1
 
-    # Carica test set
     test_X, test_y = load_svmlight_file(test_path, n_features=full_X.shape[1])
     test_X = test_X.toarray()
     test_y = test_y.astype(int)
     test_y[test_y == 0] = -1
 
-    # Benchmark su diverse dimensioni di training set
-    benchmark_svm_varying_size(full_X, full_y, test_X, test_y, C=1.0, sizes=[100])
+    #Adjust the sizes
+    benchmark_svm_varying_size(full_X, full_y, test_X, test_y,
+                               C=1.0,
+                               sizes=[10])
