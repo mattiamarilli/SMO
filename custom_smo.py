@@ -1,14 +1,14 @@
 from typing import Tuple
-
 import numpy as np
 
 class SVM:
-    def __init__(self, c: float = 1.,kkt_thr: float = 1e-3, max_iter: int = 1e4, kernel_type: str = 'linear', gamma_rbf: float = 1.) -> None:
+    def __init__(self, c: float = 1., kkt_thr: float = 1e-3, max_iter: int = 1e4, kernel_type: str = 'linear', gamma_rbf: float = 1.) -> None:
         if not kernel_type in ['linear', 'rbf']:
             raise ValueError('kernel_type must be either {} or {}'.format('linear', 'rbf'))
 
         super().__init__()
 
+        # Initialize
         self.c = float(c)
         self.max_iter = max_iter
         self.kkt_thr = kkt_thr
@@ -111,7 +111,10 @@ class SVM:
 
     def i2_heuristic(self, non_kkt_array: np.ndarray) -> int:
         i_2 = -1
+
         for idx in non_kkt_array:
+            non_kkt_array = np.delete(non_kkt_array, np.argwhere(non_kkt_array == idx))
+
             if not self.check_kkt(idx):
                 i_2 = idx
                 break
