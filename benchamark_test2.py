@@ -22,9 +22,8 @@ def benchmark_svm(num_samples=2000, num_features=120, test_size=0.2, random_stat
 
     gamma = 1.0 / num_features
 
-    model = SVM(c=1.0,kkt_thr=1e-3, max_iter=1200, kernel_type='rbf', gamma_rbf=gamma)
+    model = SVM(c=10.0,kkt_thr=1e-3, max_iter=1200, kernel_type='rbf', gamma_rbf=gamma)
     start_time = time.time()
-    print("Hello")
     model.fit(X_train, y_train)
     training_time = time.time() - start_time
     print(f"Training time (SVM personalizzato): {training_time:.3f} seconds")
@@ -41,7 +40,7 @@ def benchmark_svm(num_samples=2000, num_features=120, test_size=0.2, random_stat
 
     print("Benchmarking SVC (sklearn)...")
 
-    svc_model = SVC(C=1.0, kernel='rbf',gamma=gamma)
+    svc_model = SVC(C=10.0, kernel='rbf',gamma=gamma)
 
     start_time = time.time()
     svc_model.fit(X_train, y_train)

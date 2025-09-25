@@ -45,12 +45,16 @@ class SVM:
 
         iter_idx = 0
         non_kkt_array = np.arange(N)
-        #start_time_cache = time.time()
+        start_time_cache = time.time()
         #error_cache = self.predict(x_train)[1] - y_train
-        #print(f"Start time (SVM personalizzato): {time.time() -start_time_cache} seconds")
-        error_cache = -np.ones(N)
+        error_cache = np.zeros(N)
+        for i in range(N):
+            K_i = self.kernel_column(i)  # calcola solo K[:, i]
+            error_cache[i] = np.dot(self.alpha * self.support_labels, K_i) + self.b - y_train[i]
+        end_time_cache = time.time()
 
         print("SVM training using SMO algorithm - START")
+        start_time_fit = time.time()
         while iter_idx < self.max_iter:
             i_2, non_kkt_array = self.i2_heuristic(non_kkt_array)
             if i_2 == -1:
@@ -113,14 +117,16 @@ class SVM:
             iter_idx += 1
 
         # --- Filtraggio support vectors ---
+        end_time_fit = time.time()
         support_vectors_idx = (self.alpha != 0)
         self.support_labels = self.support_labels[support_vectors_idx]
         self.support_vectors = self.support_vectors[support_vectors_idx, :]
         self.alpha = self.alpha[support_vectors_idx]
 
         print(f"Training summary: {iter_idx} iterations, {self.alpha.shape[0]} support vectors")
+        print(f"Tempo calcolo colonne: {self.sumtimes + (end_time_cache - start_time_cache)}")
         print("SVM training using SMO algorithm - DONE!")
-        print(f"Tempo totale calcolo colonne: {self.sumtimes}")
+
 
     # ------------------- HEURISTICS -------------------
     def i1_heuristic(self, i_2, error_cache) -> int:
