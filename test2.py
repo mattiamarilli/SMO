@@ -34,6 +34,46 @@ class SVM:
         pred = np.sign(scores)
         return pred, scores
 
+    def mvp_heuristic(self, error_cache: np.ndarray) -> Tuple[int, int]:
+        # Variabili necessarie: alpha (self.alpha), y (self.support_labels), C (self.c)
+        alpha = self.alpha
+        y = self.support_labels
+        C = self.c
+
+        # 1. Definizione degli indici base (LOWER, UPPER, FREE)
+        L_indices = (alpha == 0)
+        U_indices = (alpha == C)
+        Free_indices = (alpha > 0) & (alpha < C)
+
+        # 2. Definizione degli insiemi R(alpha) e S(alpha)
+
+        # L+ e U-
+        R_mask = (L_indices & (y == 1)) | (U_indices & (y == -1)) | Free_indices
+
+        # L- e U+
+        S_mask = (L_indices & (y == -1)) | (U_indices & (y == 1)) | Free_indices
+
+        # Criterio di arresto basato sui KKT globali
+        # Se R o S sono vuoti (caso non contemplato nella Proposizione 10/260)
+        # o se R e S sono definiti, ma max(R) <= min(S) + epsilon (stop condition 49, 113, 271)
+
+        R_indices = np.where(R_mask)[0]
+        S_indices = np.where(S_mask)[0]
+
+        if R_indices.size == 0 or S_indices.size == 0:
+            # Se R o S sono vuoti, l'ottimo è raggiunto (Proposizione 9)
+            return -1, -1
+
+            # 3. Selezione MVP
+
+        # i* è l'indice in R che MINIMIZZA l'errore E (Massimizza la violazione)
+        i_mvp = R_indices[np.argmin(error_cache[R_indices])]
+
+        # j* è l'indice in S che MASSIMIZZA l'errore E (Minimizza la violazione)
+        j_mvp = S_indices[np.argmax(error_cache[S_indices])]
+
+        return i_mvp, j_mvp
+
     # ------------------- FIT -------------------
     def fit(self, x_train: np.ndarray, y_train: np.ndarray) -> None:
         N, D = x_train.shape
@@ -56,12 +96,23 @@ class SVM:
         print("SVM training using SMO algorithm - START")
         start_time_fit = time.time()
         while iter_idx < self.max_iter:
-            i_2, non_kkt_array = self.i2_heuristic(non_kkt_array)
-            if i_2 == -1:
+            if iter_idx % 50 == 0:
+                for i in range(N):
+                    K_i = self.kernel_column(i)
+                    error_cache[i] = np.dot(self.alpha * self.support_labels, K_i) + self.b - y_train[i]
+
+            i_2, i_1 = self.mvp_heuristic(error_cache)  # Seleziona i_MVP e j_MVP
+
+            # Aggiungere un criterio di arresto basato sull'ottimalità KKT se i_2 o i_1 non sono validi.
+            # Se mvp_heuristic torna (-1, -1) per indicare l'ottimalità:
+            if i_2 == -1 or i_1 == -1:
                 break
 
-            i_1 = self.i1_heuristic(i_2, error_cache)
             if i_1 == i_2:
+                print(error_cache)
+                print(iter_idx)
+                # Questo non dovrebbe accadere se MVP è implementata correttamente,
+                # ma è una safety check standard di SMO.
                 continue
 
             y_1, alpha_1 = self.support_labels[i_1], self.alpha[i_1]
@@ -79,6 +130,7 @@ class SVM:
             # --- Calcolo boundaries ---
             L, H = self.compute_boundaries(alpha_1, alpha_2, y_1, y_2)
             if L == H:
+                print("Hellooo")
                 continue
 
             # --- Calcolo eta ---
