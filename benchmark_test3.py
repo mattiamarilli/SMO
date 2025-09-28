@@ -4,9 +4,9 @@ from sklearn.datasets import make_classification
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
-from test2 import SVM
+from test3 import SVM
 
-def benchmark_svm(num_samples=10000, num_features=120, test_size=0.2, random_state=42):
+def benchmark_svm(num_samples=100, num_features=10, test_size=0.2, random_state=42):
     X, y = make_classification(n_samples=num_samples, n_features=num_features, n_informative=int(num_features * 0.6),
         n_redundant=int(num_features * 0.1), n_classes=2, n_clusters_per_class=1, random_state=random_state)
 
