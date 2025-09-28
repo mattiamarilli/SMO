@@ -22,7 +22,7 @@ def benchmark_svm(num_samples=4000, num_features=120, test_size=0.2, random_stat
 
     gamma = 1.0 / num_features
 
-    model = SVM(c=1.0,kkt_thr=1e-3, max_iter=1000, kernel_type='rbf', gamma_rbf=gamma)
+    model = SVM(c=1.0,kkt_thr=1e-3, max_iter=700, kernel_type='rbf', gamma_rbf=gamma)
     start_time = time.time()
     model.fit(X_train, y_train)
     training_time = time.time() - start_time
@@ -34,7 +34,6 @@ def benchmark_svm(num_samples=4000, num_features=120, test_size=0.2, random_stat
     accuracy = np.mean(y_pred == y_test)
     print(f"Prediction time (SVM personalizzato): {prediction_time:.3f} seconds")
     print(f"Accuracy (SVM personalizzato): {accuracy * 100:.2f}%")
-    print(f"Number of support vectors (SVM personalizzato): {model.support_vectors.shape[0]}")
 
     print("\n" + "-" * 50 + "\n")
 
@@ -53,7 +52,6 @@ def benchmark_svm(num_samples=4000, num_features=120, test_size=0.2, random_stat
     svc_accuracy = np.mean(y_pred_svc == y_test)
     print(f"Prediction time (SVC): {svc_prediction_time:.3f} seconds")
     print(f"Accuracy (SVC): {svc_accuracy * 100:.2f}%")
-    print(f"Number of support vectors (SVC): {len(svc_model.support_)}")
 
 if __name__ == "__main__":
     benchmark_svm()

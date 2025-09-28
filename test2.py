@@ -156,8 +156,10 @@ class SVM:
         self.support_vectors = self.support_vectors[support_vectors_idx, :]
         self.alpha = self.alpha[support_vectors_idx]
 
-        print(f"Training summary: {iter_idx} iterations, {self.alpha.shape[0]} support vectors")
-        print(f"Tempo calcolo colonne: {self.sumtimes + (end_time_cache - start_time_cache)}")
+        print(f"Training summary: {iter_idx} iterations");
+        print(f"Tempo calcolo colonne interno: {self.sumtimes }")
+        print(f"Tempo calcolo colonne per cache iniziale: {end_time_cache - start_time_cache}")
+        print(f"Tempo calcolo colonne totale: {self.sumtimes + (end_time_cache - start_time_cache)}")
         print("SVM training using SMO algorithm - DONE!")
 
 
