@@ -82,11 +82,12 @@ class SVM:
 
         print("SVM training using SMO algorithm - START")
         start_time_fit = time.time()
+
         while iter_idx < self.max_iter:
-            if iter_idx % 50 == 0:
-                for i in range(N):
-                    K_i = self.kernel_column(i)
-                    error_cache[i] = np.dot(self.alpha * self.support_labels, K_i) + self.b - y_train[i]
+            # if iter_idx % 50 == 0:
+            #     for i in range(N):
+            #         K_i = self.kernel_column(i)
+            #         error_cache[i] = np.dot(self.alpha * self.support_labels, K_i) + self.b - y_train[i]
 
             i_2, i_1 = self.mvp_heuristic(error_cache)  # Seleziona i_MVP e j_MVP
 
@@ -110,10 +111,6 @@ class SVM:
 
             # --- Calcolo boundaries ---
             L, H = self.compute_boundaries(alpha_1, alpha_2, y_1, y_2)
-            if L == H:
-                error_cache[i_1] = np.nan
-                error_cache[i_2] = np.nan
-                continue
 
             # --- Calcolo eta ---
             eta = k11 + k22 - 2 * k12
@@ -145,8 +142,9 @@ class SVM:
             self.alpha[i_2] = alpha_2_new
 
             # --- Aggiornamento cache errori ---
-            error_cache[i_1] = np.dot(self.alpha * self.support_labels, K_i1) + self.b - y_1
-            error_cache[i_2] = np.dot(self.alpha * self.support_labels, K_i2) + self.b - y_2
+            delta_alpha_1 = alpha_1_new - alpha_1
+            delta_alpha_2 = alpha_2_new - alpha_2
+            error_cache += y_1 * delta_alpha_1 * K_i1 + y_2 * delta_alpha_2 * K_i2
 
             iter_idx += 1
 
